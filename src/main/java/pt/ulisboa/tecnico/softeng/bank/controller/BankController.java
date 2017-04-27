@@ -1,5 +1,7 @@
 package pt.ulisboa.tecnico.softeng.bank.controller;
 
+import java.util.ArrayList;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -42,16 +44,20 @@ public class BankController {
 		return "redirect:/banks";
 	}
 
+	
+	
 	@RequestMapping(value = "/bank/{code}", method = RequestMethod.GET)
 	public String showBank(Model model, @PathVariable String code) {
 		logger.info("showBank code:{}", code);
 
 		Bank bank = Bank.getBankByCode(code);
-
-		new Client(bank, "ID01", "Zé", 22);
-		new Client(bank, "ID02", "Manel", 44);
+		logger.info("showBank bank.code:{}", bank.getCode());
+		Client client = new Client();
+		client.setBank(bank);
 
 		model.addAttribute("bank", bank);
+		model.addAttribute("client", client);
+		model.addAttribute("clients", new ArrayList<>());
 		return "bank";
 	}
 }

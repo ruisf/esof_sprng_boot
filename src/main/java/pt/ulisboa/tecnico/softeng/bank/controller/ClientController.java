@@ -14,22 +14,24 @@ import pt.ulisboa.tecnico.softeng.bank.domain.Client;
 import pt.ulisboa.tecnico.softeng.bank.exception.BankException;
 
 @Controller
-@RequestMapping(value = "/bank/{code}/clients")
+@RequestMapping(value = "/banks/bank/{code}/client")
 public class ClientController {
 	private static Logger logger = LoggerFactory.getLogger(ClientController.class);
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String clientForm(Model model) {
-		logger.info("clientForm");
+	public String clientForm(Model model, @ModelAttribute Bank bank) {
+		logger.info("clientForm bank:{}", bank);
 		
 		// Tenho dúvidas /////
-		Bank bank=new Bank();
+		//Bank bank=new Bank();
 		//////////////////////
+		Client client = new Client();
+		client.setBank(bank);
 		
 		model.addAttribute("bank", bank);
-		model.addAttribute("client", new Client());
+		model.addAttribute("client", client);
 		model.addAttribute("clients", bank.getClients());
-		return "clients";
+		return "bank";
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
@@ -38,26 +40,36 @@ public class ClientController {
 
 		try {
 			new Client(client.getBank(), client.getId(), client.getName(), client.getAge());
-		} catch (BankException be) {
-			model.addAttribute("error", "Error: it was not possible to create the client");
+			model.addAttribute("bank", client.getBank());
 			model.addAttribute("client", client);
 			model.addAttribute("clients", client.getBank().getClients());
-			return "clients";
+		} catch (BankException be) {
+			model.addAttribute("error", "Error: it was not possible to create the client");
+			
+			model.addAttribute("bank", client.getBank());
+			model.addAttribute("client", client);
+			model.addAttribute("clients", client.getBank().getClients());
+			return "bank";
 		}
 
-		return "redirect:/clients";
+		return "redirect:/bank/"+client.getBank().getCode()+"/client";
 	}
 
-	@RequestMapping(value = "/bank/{code}/clients/{id}/client", method = RequestMethod.GET)
+	@RequestMapping(value = "/{id}/client", method = RequestMethod.GET)
 	public String showClient(Model model, @PathVariable String code, @PathVariable String id) {
 		logger.info("showClient code:{},id:{}", code, id);
 
 		Bank bank = Bank.getBankByCode(code);
-
-		new Client(bank, "ID01", "Zé", 22);
-		new Client(bank, "ID02", "Manel", 44);
-
+		Client client = null;
+		for(Client cli : bank.getClients()){
+			if(cli.getId()==id)
+				client=cli;
+		}
 		model.addAttribute("bank", bank);
-		return "bank";
+		
+		model.addAttribute("error", "Error: it was not possible to view the client");
+		model.addAttribute("client", client);
+		model.addAttribute("clients", client.getBank().getClients());
+		return "client"; //página para onde volta
 	}
 }
