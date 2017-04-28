@@ -1,5 +1,8 @@
 package pt.ulisboa.tecnico.softeng.bank.controller;
 
+import java.util.HashSet;
+import java.util.Set;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Controller;
@@ -19,57 +22,50 @@ public class ClientController {
 	private static Logger logger = LoggerFactory.getLogger(ClientController.class);
 
 	@RequestMapping(method = RequestMethod.GET)
-	public String clientForm(Model model, @ModelAttribute Bank bank) {
+	public String clientForm(Model model, @ModelAttribute Bank bank) {//preciso cliente tb?
 		logger.info("clientForm bank:{}", bank);
 		
-		// Tenho dúvidas /////
-		//Bank bank=new Bank();
-		//////////////////////
 		Client client = new Client();
 		client.setBank(bank);
 		
 		model.addAttribute("bank", bank);
 		model.addAttribute("client", client);
 		model.addAttribute("clients", bank.getClients());
-		return "bank";
+		return "redirect:/banks/bank/"+bank.getCode();
 	}
 
 	@RequestMapping(method = RequestMethod.POST)
-	public String clientSubmit(Model model, @ModelAttribute Client client) {
-		logger.info("clientSubmit bank:{}, id:{}, name:{}, age:{}", client.getBank(), client.getId(), client.getName(), client.getAge());
+	public String clientSubmit(Model model, @ModelAttribute Client client, @ModelAttribute Bank bank) {
+		logger.info("clientSubmit bank:{}, id:{}, name:{}, age:{}", bank, client.getId(), client.getName(), client.getAge());
 
 		try {
-			new Client(client.getBank(), client.getId(), client.getName(), client.getAge());
-			model.addAttribute("bank", client.getBank());
+			new Client(bank, client.getId(), client.getName(), client.getAge());
+			//model.addAttribute("bank", client.getBank());
+			client.setBank(bank);
 			model.addAttribute("client", client);
-			model.addAttribute("clients", client.getBank().getClients());
+			model.addAttribute("clients", client.getBank().getClients().add(client));
 		} catch (BankException be) {
 			model.addAttribute("error", "Error: it was not possible to create the client");
 			
 			model.addAttribute("bank", client.getBank());
 			model.addAttribute("client", client);
 			model.addAttribute("clients", client.getBank().getClients());
-			return "bank";
+			return "redirect:/banks/bank/"+bank.getCode();
 		}
 
-		return "redirect:/bank/"+client.getBank().getCode()+"/client";
+		return "redirect:/banks/bank/"+bank.getCode();
 	}
-
-	@RequestMapping(value = "/{id}/client", method = RequestMethod.GET)
-	public String showClient(Model model, @PathVariable String code, @PathVariable String id) {
-		logger.info("showClient code:{},id:{}", code, id);
+/*
+	@RequestMapping(value = "/banks/bank/{code}/client", method = RequestMethod.GET)
+	public String showClient(Model model, @PathVariable String code) {
+		logger.info("showClient code:{},id:{}", code);
 
 		Bank bank = Bank.getBankByCode(code);
-		Client client = null;
-		for(Client cli : bank.getClients()){
-			if(cli.getId()==id)
-				client=cli;
-		}
+		logger.info("showBank bank.code:{}", bank.getCode());
+		Set<Client> listClient = bank.getClients();
 		model.addAttribute("bank", bank);
-		
-		model.addAttribute("error", "Error: it was not possible to view the client");
-		model.addAttribute("client", client);
-		model.addAttribute("clients", client.getBank().getClients());
-		return "client"; //página para onde volta
+		model.addAttribute("clients", listClient);
+		return "redirect:/banks/bank/"+bank.getCode();
 	}
+	*/
 }

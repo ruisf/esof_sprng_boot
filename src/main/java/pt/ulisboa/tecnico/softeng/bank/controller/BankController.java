@@ -1,6 +1,6 @@
 package pt.ulisboa.tecnico.softeng.bank.controller;
 
-import java.util.ArrayList;
+import java.util.*;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,11 +53,15 @@ public class BankController {
 		Bank bank = Bank.getBankByCode(code);
 		logger.info("showBank bank.code:{}", bank.getCode());
 		Client client = new Client();
+		if(bank.getClients()==null){
+			Set<Client> listClient = new HashSet<>();
+			bank.setClients(listClient);
+		}
 		client.setBank(bank);
 
 		model.addAttribute("bank", bank);
 		model.addAttribute("client", client);
-		model.addAttribute("clients", new ArrayList<>());
+		model.addAttribute("clients", bank.getClients());
 		return "bank";
 	}
 }
